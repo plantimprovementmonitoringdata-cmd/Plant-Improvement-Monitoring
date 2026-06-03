@@ -1,0 +1,112 @@
+{
+  "entities": {
+    "HazardReport": {
+      "title": "Hazard Report",
+      "description": "Laporan bahaya di lapangan",
+      "type": "object",
+      "properties": {
+        "tanggal": {
+          "type": "string",
+          "description": "Format YYYY-MM"
+        },
+        "judul": {
+          "type": "string",
+          "description": "Judul bahaya yang dilaporkan"
+        },
+        "namaKaryawan": {
+          "type": "string",
+          "description": "Nama pelapor"
+        },
+        "nrp": {
+          "type": "string",
+          "description": "Nomor Registrasi Pegawai pelapor"
+        },
+        "authorId": {
+          "type": "string",
+          "description": "User ID of the reporter"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp saat record dibuat"
+        }
+      },
+      "required": ["tanggal", "judul", "namaKaryawan", "nrp", "authorId", "createdAt"]
+    },
+    "SafetyTalk": {
+      "title": "Safety Talk",
+      "description": "Pencatatan briefing K3 harian",
+      "type": "object",
+      "properties": {
+        "tanggal": {
+          "type": "string",
+          "description": "Format YYYY-MM"
+        },
+        "namaKaryawan": {
+          "type": "string",
+          "description": "Nama karyawan"
+        },
+        "nrp": {
+          "type": "string",
+          "description": "Nomor Registrasi Pegawai"
+        },
+        "authorId": {
+          "type": "string",
+          "description": "User ID of the creator"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp saat record dibuat"
+        }
+      },
+      "required": ["tanggal", "namaKaryawan", "nrp", "authorId", "createdAt"]
+    },
+    "TestFatigue": {
+      "title": "Test Fatigue",
+      "description": "Pencatatan test fatigue Karyawan",
+      "type": "object",
+      "properties": {
+        "tanggal": {
+          "type": "string",
+          "description": "Format YYYY-MM"
+        },
+        "namaKaryawan": {
+          "type": "string",
+          "description": "Nama karyawan"
+        },
+        "nrp": {
+          "type": "string",
+          "description": "Nomor Registrasi Pegawai"
+        },
+        "authorId": {
+          "type": "string",
+          "description": "User ID of the creator"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp saat record dibuat"
+        }
+      },
+      "required": ["tanggal", "namaKaryawan", "nrp", "authorId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/hazardReports/{reportId}": {
+      "schema": {
+        "$ref": "#/entities/HazardReport"
+      },
+      "description": "Collection of all hazard reports"
+    },
+    "/safetyTalks/{talkId}": {
+      "schema": {
+        "$ref": "#/entities/SafetyTalk"
+      },
+      "description": "Collection of all safety talks"
+    },
+    "/testFatigues/{testId}": {
+      "schema": {
+        "$ref": "#/entities/TestFatigue"
+      },
+      "description": "Collection of all test fatigues"
+    }
+  }
+}

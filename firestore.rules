@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidHazardReport(data) {
+      return data.keys().hasAll(['tanggal', 'judul', 'namaKaryawan', 'nrp', 'authorId', 'createdAt']) &&
+        data.keys().size() == 6 &&
+        data.tanggal is string && data.tanggal.size() <= 20 &&
+        data.judul is string && data.judul.size() <= 200 &&
+        data.namaKaryawan is string && data.namaKaryawan.size() <= 100 &&
+        data.nrp is string && data.nrp.size() <= 50 &&
+        data.authorId is string && data.authorId == request.auth.uid &&
+        data.createdAt == request.time;
+    }
+
+    function isValidSafetyTalk(data) {
+      return data.keys().hasAll(['tanggal', 'namaKaryawan', 'nrp', 'authorId', 'createdAt']) &&
+        data.keys().size() == 5 &&
+        data.tanggal is string && data.tanggal.size() <= 20 &&
+        data.namaKaryawan is string && data.namaKaryawan.size() <= 100 &&
+        data.nrp is string && data.nrp.size() <= 50 &&
+        data.authorId is string && data.authorId == request.auth.uid &&
+        data.createdAt == request.time;
+    }
+
+    function isValidTestFatigue(data) {
+      return data.keys().hasAll(['tanggal', 'namaKaryawan', 'nrp', 'authorId', 'createdAt']) &&
+        data.keys().size() == 5 &&
+        data.tanggal is string && data.tanggal.size() <= 20 &&
+        data.namaKaryawan is string && data.namaKaryawan.size() <= 100 &&
+        data.nrp is string && data.nrp.size() <= 50 &&
+        data.authorId is string && data.authorId == request.auth.uid &&
+        data.createdAt == request.time;
+    }
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'plantimprovementmonitoringdata@gmail.com';
+    }
+
+    match /hazardReports/{reportId} {
+      allow read, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(reportId) && isValidHazardReport(incoming());
+      allow update: if isSignedIn() && isAdmin(); 
+      allow delete: if isSignedIn() && isValidId(reportId) && (existing().authorId == request.auth.uid || isAdmin());
+    }
+
+    match /safetyTalks/{talkId} {
+      allow read, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(talkId) && isValidSafetyTalk(incoming());
+      allow update: if isSignedIn() && isAdmin();
+      allow delete: if isSignedIn() && isValidId(talkId) && (existing().authorId == request.auth.uid || isAdmin());
+    }
+
+    match /testFatigues/{testId} {
+      allow read, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(testId) && isValidTestFatigue(incoming());
+      allow update: if isSignedIn() && isAdmin();
+      allow delete: if isSignedIn() && isValidId(testId) && (existing().authorId == request.auth.uid || isAdmin());
+    }
+  }
+}

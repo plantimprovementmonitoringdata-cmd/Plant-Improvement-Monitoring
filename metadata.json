@@ -1,0 +1,6 @@
+{
+  "name": "Safety Log & Dashboard Tracker",
+  "description": "Aplikasi penginputan dan dashboard pemantauan target Hazard Report, Safety Talk, dan Test Fatigue bulanan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
