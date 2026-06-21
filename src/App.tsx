@@ -23,7 +23,9 @@ import {
   Check,
   Zap,
   CloudUpload,
-  LogOut
+  LogOut,
+  Maximize,
+  Minimize
 } from "lucide-react";
 import { HazardReport, SafetyTalk, TestFatigue } from "./types";
 import { 
@@ -95,6 +97,7 @@ export default function App() {
   // Interactive refresh dashboard state
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSyncingDrive, setIsSyncingDrive] = useState(false);
+  const [isDashboardFullscreen, setIsDashboardFullscreen] = useState(false);
   const [googleUser, setGoogleUser] = useState<any>(null);
   const isAdmin = googleUser?.email === "plantimprovementmonitoringdata@gmail.com";
 
@@ -584,38 +587,7 @@ export default function App() {
     }
   };
 
-  // Kosongkan database
-  const handleClearData = async () => {
-    if (!window.confirm("AWAS! Anda yakin ingin mengosongkan SELURUH DATA dalam database untuk akun Anda? Data yang dihapus tidak bisa dikembalikan.")) {
-      return;
-    }
 
-    if (!googleUser?.uid) {
-      showToast("Silakan login via tombol 'Login K3' untuk mengosongkan data!", "error");
-      return;
-    }
-
-    setIsRefreshing(true);
-    try {
-      const batch = writeBatch(db);
-      const collections = ["hazardReports", "safetyTalks", "testFatigues"];
-
-      for (const coll of collections) {
-        const q = query(collection(db, coll));
-        const snapshot = await getDocs(q);
-        snapshot.forEach((docSnap) => {
-          batch.delete(doc(db, coll, docSnap.id));
-        });
-      }
-
-      await batch.commit();
-      showToast("Seluruh database K3 berhasil dikosongkan.", "success");
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, "clearDatabase");
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
 
   // Kosongkan log per periode yang dipilih
   const handleClearPeriodData = async () => {
@@ -974,13 +946,22 @@ export default function App() {
         </section>
 
         {/* Dashboard Percentage Target Module */}
-        <section className="space-y-4">
+        <section className={`${isDashboardFullscreen ? 'fixed inset-0 z-50 bg-slate-50/95 overflow-y-auto p-4 md:p-8 backdrop-blur-xl flex flex-col space-y-6' : 'space-y-4'}`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h3 className="text-xs font-bold tracking-wider text-slate-400 uppercase font-mono flex items-center gap-1.5">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
+              <TrendingUp className={`w-4 h-4 ${isDashboardFullscreen ? 'text-blue-500' : 'text-emerald-600'}`} />
               Progress Target Bulanan: {focusEmployeeNrp === "all" ? "Kumulatif Tim K3" : employeeStatsList.find(e => e.nrp === focusEmployeeNrp)?.nama}
             </h3>
             <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setIsDashboardFullscreen(!isDashboardFullscreen)}
+                className="px-3.5 py-1.5 bg-slate-800 text-white hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-3xs select-none active:scale-95"
+                title={isDashboardFullscreen ? "Keluar Full Screen" : "Buka Full Screen"}
+              >
+                {isDashboardFullscreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
+                {isDashboardFullscreen ? "Tutup Full Screen" : "Full Screen"}
+              </button>
+              
               {googleUser ? (
                 <div className="flex items-center gap-1 bg-white/60 backdrop-blur-md px-2 py-1 rounded-xl border border-white/40 shadow-3xs group">
                   <span className="text-[10px] font-bold text-slate-500 font-mono pl-1">
@@ -1032,7 +1013,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className={`grid gap-6 ${isDashboardFullscreen ? 'grid-cols-1 max-w-4xl w-full mx-auto' : 'grid-cols-1 md:grid-cols-3'}`}>
             {/* Target 1: Hazard Report */}
             <motion.div 
               whileHover={{ y: -3, scale: 1.01 }}
