@@ -19,6 +19,7 @@ import {
   TrendingUp,
   RefreshCw,
   User,
+  Users,
   Check,
   Zap,
   CloudUpload,
@@ -108,13 +109,6 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!googleUser?.uid) {
-      setHazardReports(initialHazardReports);
-      setSafetyTalks(initialSafetyTalks);
-      setTestFatigues(initialTestFatigues);
-      return;
-    }
-
     const unsubs: any[] = [];
     
     const hQ = query(collection(db, "hazardReports"));
@@ -136,7 +130,7 @@ export default function App() {
     }, (err) => handleFirestoreError(err, OperationType.LIST, "testFatigues")));
 
     return () => unsubs.forEach(fn => fn());
-  }, [googleUser]);
+  }, []);
 
   const handleLoginGoogle = async () => {
     try {
@@ -409,7 +403,7 @@ export default function App() {
   const handleAddHazard = async (e: FormEvent) => {
     e.preventDefault();
     if (!googleUser?.uid) {
-      showToast("Silakan login via tombol 'Sync Drive' untuk memulai database!", "error");
+      showToast("Silakan login via tombol 'Login K3' untuk menambah data!", "error");
       return;
     }
     if (!hazardNama.trim()) {
@@ -446,7 +440,7 @@ export default function App() {
   const handleAddSafetyTalk = async (e: FormEvent) => {
     e.preventDefault();
     if (!googleUser?.uid) {
-      showToast("Silakan login via tombol 'Sync Drive' untuk memulai database!", "error");
+      showToast("Silakan login via tombol 'Login K3' untuk menambah data!", "error");
       return;
     }
     if (!safetyTalkNama.trim()) {
@@ -477,7 +471,7 @@ export default function App() {
   const handleAddTestFatigue = async (e: FormEvent) => {
     e.preventDefault();
     if (!googleUser?.uid) {
-      showToast("Silakan login via tombol 'Sync Drive' untuk memulai database!", "error");
+      showToast("Silakan login via tombol 'Login K3' untuk menambah data!", "error");
       return;
     }
     if (!testFatigueNama.trim()) {
@@ -553,7 +547,7 @@ export default function App() {
   // Deletion logic
   const handleDeleteHazard = async (id: string) => {
     if (!googleUser?.uid) {
-      setHazardReports((prev) => prev.filter((item) => item.id !== id));
+      showToast("Silakan login via tombol 'Login K3' untuk menghapus data!", "error");
       return;
     }
     try {
@@ -566,7 +560,7 @@ export default function App() {
 
   const handleDeleteSafetyTalk = async (id: string) => {
     if (!googleUser?.uid) {
-      setSafetyTalks((prev) => prev.filter((item) => item.id !== id));
+      showToast("Silakan login via tombol 'Login K3' untuk menghapus data!", "error");
       return;
     }
     try {
@@ -579,7 +573,7 @@ export default function App() {
 
   const handleDeleteTestFatigue = async (id: string) => {
     if (!googleUser?.uid) {
-      setTestFatigues((prev) => prev.filter((item) => item.id !== id));
+      showToast("Silakan login via tombol 'Login K3' untuk menghapus data!", "error");
       return;
     }
     try {
@@ -597,10 +591,7 @@ export default function App() {
     }
 
     if (!googleUser?.uid) {
-      setHazardReports([]);
-      setSafetyTalks([]);
-      setTestFatigues([]);
-      showToast("Data log lokal berhasil dikosongkan.", "success");
+      showToast("Silakan login via tombol 'Login K3' untuk mengosongkan data!", "error");
       return;
     }
 
@@ -633,11 +624,7 @@ export default function App() {
     }
 
     if (!googleUser?.uid) {
-      // Local state filtering
-      setHazardReports(prev => prev.filter(x => !x.tanggal.startsWith(periodKey)));
-      setSafetyTalks(prev => prev.filter(x => !x.tanggal.startsWith(periodKey)));
-      setTestFatigues(prev => prev.filter(x => !x.tanggal.startsWith(periodKey)));
-      showToast(`Data log lokal periode ${periodKey} berhasil dikosongkan.`, "success");
+      showToast("Silakan login via tombol 'Login K3' untuk menghapus data periode!", "error");
       return;
     }
 
@@ -665,7 +652,7 @@ export default function App() {
   };
   const handleShortcutLog = async (type: "hazard" | "talk" | "fatigue") => {
     if (!googleUser?.uid) {
-      showToast("Silakan login via tombol 'Sync Drive' untuk memulai database!", "error");
+      showToast("Silakan login via tombol 'Login K3' untuk menambah data!", "error");
       return;
     }
     
@@ -895,15 +882,6 @@ export default function App() {
                 </span>
               </div>
             </div>
-
-            <button
-              onClick={handleClearData}
-              className="px-3 py-1.5 border border-slate-200 bg-white/60 text-slate-600 hover:text-red-600 hover:bg-white/95 rounded-xl text-xs backdrop-blur-xs shadow-2xs transition-all flex items-center gap-1 font-semibold select-none cursor-pointer hover:border-slate-300 active:scale-95"
-              title="Hapus semua data K3 di database untuk akun aktif"
-            >
-              <RefreshCw className="w-3.5 h-3.5 text-red-500" />
-              Kosongkan Data
-            </button>
           </div>
         </div>
       </header>
@@ -1220,117 +1198,102 @@ export default function App() {
             </div>
           </div>
 
-          {/* Kepatuhan Individu Karyawan Audit Table card */}
-          <div className="bg-white/60 backdrop-blur-lg border border-white/50 rounded-2xl overflow-hidden shadow-sm shadow-slate-200/15 transition-all">
-            <div className="p-4 bg-white/40 border-b border-white/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <div>
-                <h4 className="text-xs font-black text-slate-800 tracking-wide font-sans flex items-center gap-1.5 uppercase font-mono">
-                  <User className="w-4 h-4 text-emerald-600" />
-                  Daftar Kepatuhan Target Individu Karyawan ({MONTHS_INDONESIAN[selectedMonth]} {selectedYear})
-                </h4>
-                <p className="text-[10.5px] text-slate-500 mt-0.5 leading-relaxed font-sans">
-                  Setiap karyawan diwajibkan mengirim minimal: <span className="font-extrabold text-rose-600">1 Hazard Report</span>, menghadiri <span className="font-extrabold text-sky-600">6 Safety Talk</span>, serta melakukan <span className="font-extrabold text-amber-600">3 Fatigue Check</span> per bulan.
-                </p>
-              </div>
-              <div className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 px-2.5 py-1 rounded-lg font-extrabold font-mono shadow-3xs self-start sm:self-center">
-                {employeeStatsList.length} Personil Aktif
-              </div>
+        {/* Dashboard Kepatuhan Individu Karyawan */}
+        <section className="bg-white/60 backdrop-blur-lg border border-white/50 rounded-2xl overflow-hidden shadow-sm shadow-slate-200/15 transition-all">
+          <div className="p-4 bg-white/40 border-b border-white/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h4 className="text-xs font-black text-slate-800 tracking-wide font-sans flex items-center gap-1.5 uppercase font-mono">
+                <Users className="w-4 h-4 text-emerald-600" />
+                Daftar Kepatuhan Target Individu Karyawan ({MONTHS_INDONESIAN[selectedMonth]} {selectedYear})
+              </h4>
+              <p className="text-[10.5px] text-slate-500 mt-0.5 leading-relaxed font-sans">
+                Setiap karyawan diwajibkan mengirim minimal: <span className="font-extrabold text-rose-600">1 Hazard Report</span>, menghadiri <span className="font-extrabold text-sky-600">6 Safety Talk</span>, serta melakukan <span className="font-extrabold text-amber-600">3 Fatigue Check</span> per bulan.
+              </p>
             </div>
-
-            {employeeStatsList.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs font-mono space-y-2">
-                <Info className="w-8 h-8 text-slate-300 mx-auto" />
-                <p>Belum ada rekaman log/laporan K3 yang didaftarkan untuk periode ini.</p>
-                <p className="text-[10px] text-slate-400 font-sans">Silakan isi formulir laporan di bawah atau gunakan tombol "Simulasi Tambah Cepat" untuk mengisi instan.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/40 bg-white/30 text-[10.5px] font-mono text-slate-500 font-bold uppercase tracking-wider">
-                      <th className="py-3 px-4">Nama / NRP Karyawan</th>
-                      <th className="py-3 px-4 text-center">Hazard Report (Min 1x)</th>
-                      <th className="py-3 px-4 text-center">Safety Talk (Min 6x)</th>
-                      <th className="py-3 px-4 text-center">Test Fatigue (Min 3x)</th>
-                      <th className="py-3 px-4 text-center col-span-1">Persentase Total</th>
-                      <th className="py-3 px-4 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/25 text-xs">
-                    {employeeStatsList.map((emp) => {
-                      return (
-                        <tr 
-                          key={emp.nrp} 
-                          className={`hover:bg-white/80 transition-all ${focusEmployeeNrp === emp.nrp ? "bg-emerald-500/10 backdrop-blur-xs" : ""}`}
-                        >
-                          <td className="py-3.5 px-4">
-                            <span className="font-bold text-slate-800 block">{emp.nama}</span>
-                            <span className="text-[10px] text-slate-400 font-bold font-mono">NRP: {emp.nrp}</span>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="flex flex-col items-center gap-1">
-                              <span className={`text-[11px] font-black font-mono ${emp.isHazardReached ? "text-emerald-700" : "text-rose-600"}`}>
-                                {emp.hazardCount} / 1
-                              </span>
-                              <div className="w-20 bg-black/5 h-1.5 rounded-full overflow-hidden p-[1px] border border-white/20">
-                                <div className="bg-rose-500 h-full rounded-full transition-all" style={{ width: `${emp.hazardPercentage}%` }} />
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="flex flex-col items-center gap-1">
-                              <span className={`text-[11px] font-black font-mono ${emp.isSafetyTalkReached ? "text-emerald-700" : "text-sky-600"}`}>
-                                {emp.safetyTalkCount} / 6
-                              </span>
-                              <div className="w-20 bg-black/5 h-1.5 rounded-full overflow-hidden p-[1px] border border-white/20">
-                                <div className="bg-sky-500 h-full rounded-full transition-all" style={{ width: `${emp.safetyTalkPercentage}%` }} />
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="flex flex-col items-center gap-1">
-                              <span className={`text-[11px] font-black font-mono ${emp.isTestFatigueReached ? "text-emerald-700" : "text-amber-600"}`}>
-                                {emp.testFatigueCount} / 3
-                              </span>
-                              <div className="w-20 bg-black/5 h-1.5 rounded-full overflow-hidden p-[1px] border border-white/20">
-                                <div className="bg-amber-500 h-full rounded-full transition-all" style={{ width: `${emp.testFatiguePercentage}%` }} />
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4 text-center">
-                            <div className="inline-flex flex-col items-center gap-1">
-                              {emp.isFullyCompliant ? (
-                                <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 text-[9.5px] font-black font-mono px-2.5 py-0.5 rounded-lg flex items-center gap-0.5 shadow-3xs">
-                                  <Check className="w-3 h-3 text-emerald-600 font-extrabold" /> 100% COMPLIANT
-                                </span>
-                              ) : (
-                                <span className="bg-amber-500/10 border border-amber-500/20 text-amber-800 text-[9.5px] font-black font-mono px-2.5 py-0.5 rounded-lg shadow-3xs">
-                                  {emp.overallPercentage}% COMPLETE
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <button
-                              onClick={() => setFocusEmployeeNrp(focusEmployeeNrp === emp.nrp ? "all" : emp.nrp)}
-                              className={`px-3 py-1.5 rounded-xl text-[10.5px] font-bold transition-all shadow-3xs select-none cursor-pointer ${
-                                focusEmployeeNrp === emp.nrp 
-                                  ? "bg-slate-800 text-white hover:bg-slate-900 border border-black/10" 
-                                  : "bg-white/80 hover:bg-white text-slate-700 border border-white/60 hover:border-white"
-                              }`}
-                            >
-                              {focusEmployeeNrp === emp.nrp ? "Lepas Fokus" : "Fokus Grafik"}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <div className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 px-2.5 py-1 rounded-lg font-extrabold font-mono shadow-3xs self-start sm:self-center">
+              {employeeStatsList.length} Personil Aktif
+            </div>
           </div>
+
+          {employeeStatsList.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 text-xs font-mono space-y-2">
+              <Info className="w-8 h-8 text-slate-300 mx-auto" />
+              <p>Belum ada aktivitas karyawan untuk periode ini.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="border-b border-white/40 bg-white/30 text-[10.5px] font-mono text-slate-500 font-bold uppercase tracking-wider">
+                    <th className="py-3 px-4">Nama / NRP Karyawan</th>
+                    <th className="py-3 px-4 text-center">Hazard Report (Min 1x)</th>
+                    <th className="py-3 px-4 text-center">Safety Talk (Min 6x)</th>
+                    <th className="py-3 px-4 text-center">Test Fatigue (Min 3x)</th>
+                    <th className="py-3 px-4 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/25 text-xs">
+                  {employeeStatsList.map((emp) => (
+                    <tr 
+                      key={emp.nrp} 
+                      className={`hover:bg-white/80 transition-all ${focusEmployeeNrp === emp.nrp ? "bg-emerald-500/10 backdrop-blur-xs" : ""}`}
+                    >
+                      <td className="py-3.5 px-4">
+                        <span className="font-bold text-slate-800 block">{emp.nama}</span>
+                        <span className="text-[10px] text-slate-400 font-bold font-mono">NRP: {emp.nrp}</span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-col items-center gap-1">
+                          <span className={`text-[11px] font-black font-mono ${emp.isHazardReached ? "text-emerald-700" : "text-rose-600"}`}>
+                            {emp.hazardCount} / 1
+                          </span>
+                          <div className="w-20 bg-black/5 h-1.5 rounded-full overflow-hidden p-[1px] border border-white/20">
+                            <div className="bg-rose-500 h-full rounded-full transition-all" style={{ width: `${emp.hazardPercentage}%` }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-col items-center gap-1">
+                          <span className={`text-[11px] font-black font-mono ${emp.isSafetyTalkReached ? "text-emerald-700" : "text-sky-600"}`}>
+                            {emp.safetyTalkCount} / 6
+                          </span>
+                          <div className="w-20 bg-black/5 h-1.5 rounded-full overflow-hidden p-[1px] border border-white/20">
+                            <div className="bg-sky-500 h-full rounded-full transition-all" style={{ width: `${emp.safetyTalkPercentage}%` }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-col items-center gap-1">
+                          <span className={`text-[11px] font-black font-mono ${emp.isTestFatigueReached ? "text-emerald-700" : "text-amber-600"}`}>
+                            {emp.testFatigueCount} / 3
+                          </span>
+                          <div className="w-20 bg-black/5 h-1.5 rounded-full overflow-hidden p-[1px] border border-white/20">
+                            <div className="bg-amber-500 h-full rounded-full transition-all" style={{ width: `${emp.testFatiguePercentage}%` }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="inline-flex flex-col items-center gap-1">
+                          {emp.isFullyCompliant ? (
+                            <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 text-[9.5px] font-black font-mono px-2.5 py-0.5 rounded-lg flex items-center gap-0.5 shadow-3xs">
+                              <Check className="w-3 h-3 text-emerald-600 font-extrabold" /> 100% OK
+                            </span>
+                          ) : (
+                            <span className="bg-amber-500/10 border border-amber-500/20 text-amber-800 text-[9.5px] font-black font-mono px-2.5 py-0.5 rounded-lg shadow-3xs">
+                              {emp.overallPercentage}%
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
+        </section>
+
 
         {/* Form and Log Split Master Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

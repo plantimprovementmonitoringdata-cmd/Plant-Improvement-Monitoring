@@ -57,21 +57,21 @@ service cloud.firestore {
     }
 
     match /hazardReports/{reportId} {
-      allow read, list: if isSignedIn();
+      allow read, list: if true;
       allow create: if isSignedIn() && isValidId(reportId) && isValidHazardReport(incoming());
       allow update: if isSignedIn() && isAdmin(); 
       allow delete: if isSignedIn() && isValidId(reportId) && (existing().authorId == request.auth.uid || isAdmin());
     }
 
     match /safetyTalks/{talkId} {
-      allow read, list: if isSignedIn();
+      allow read, list: if true;
       allow create: if isSignedIn() && isValidId(talkId) && isValidSafetyTalk(incoming());
       allow update: if isSignedIn() && isAdmin();
       allow delete: if isSignedIn() && isValidId(talkId) && (existing().authorId == request.auth.uid || isAdmin());
     }
 
     match /testFatigues/{testId} {
-      allow read, list: if isSignedIn();
+      allow read, list: if true;
       allow create: if isSignedIn() && isValidId(testId) && isValidTestFatigue(incoming());
       allow update: if isSignedIn() && isAdmin();
       allow delete: if isSignedIn() && isValidId(testId) && (existing().authorId == request.auth.uid || isAdmin());
